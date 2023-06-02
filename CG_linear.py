@@ -2,7 +2,7 @@ from scipy.linalg import hilbert
 import numpy as np
 
 
-def conjugate_grad(dim):
+def linear_conjugate_grad(dim):
     A = hilbert(dim)
     b = np.ones(dim)
     x = np.zeros(dim)
@@ -28,4 +28,8 @@ def conjugate_grad(dim):
             break
         x, r, p = x1, r1, p1
 
-    return x1, ke
+    return x1, k
+
+for i in (5, 8, 12, 20):
+    print(f'The solution for {i} dimensions is: \n{linear_conjugate_grad(i)[0]} \nand the number of iterations is {linear_conjugate_grad(i)[1]}')
+    print()
