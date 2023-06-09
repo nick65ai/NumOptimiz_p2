@@ -49,6 +49,7 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
+    iters = 0
 
     while True:
         gradient = df(xj)
@@ -63,7 +64,7 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
             x2 += [x[1], ]
             plt.plot(x1, x2, "rx-", ms=5.5)
             plt.show()
-            return x, f(x)
+            return x, f(x), iters
         else:
             dj = x - xj
             gj = df(x) - gradient
@@ -81,9 +82,10 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
             xj = x
             x1 += [xj[0], ]
             x2 += [xj[1], ]
+        iters += 1
 
 
-print(f'BFGS result:{bfgs(np.array([1.2, 1.2]))}\n')
+print(f'BFGS result:{bfgs(np.array([-0.2, 1.2]))}\n')
 
 # Function plot for SR1
 contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
@@ -102,7 +104,7 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
-
+    iters = 0
     while True:
         gradient = df(xj)
         delta = -bf.dot(gradient)
@@ -115,7 +117,7 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
             x2 += [x[1], ]
             plt.plot(x1, x2, "rx-", ms=5.5)
             plt.show()
-            return x, f(x)
+            return x, f(x), iters
         else:
             dj = x - xj
             gj = df(x) - gradient
@@ -129,6 +131,7 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
             xj = x
             x1 += [xj[0], ]
             x2 += [xj[1], ]
+        iters += 1
 
 
-print(f'SR1 result:{sr1(np.array([-1.2, 1]))}')
+print(f'SR1 result:{sr1(np.array([-0.2, 1.2]))}')
