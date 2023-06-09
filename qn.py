@@ -4,7 +4,8 @@ from autograd import grad
 
 
 def f(x):
-    return 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
+    # return 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
+    return 150*(x[0]*x[1])**2 + (0.5*x[0] + 2*x[1] - 2)**2
 
 
 df = grad(f)
@@ -44,7 +45,7 @@ plt.ylabel("$x_2$ ->")
 '''
 
 
-def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.25):
+def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
