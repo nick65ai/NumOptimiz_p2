@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from autograd import grad
+from autograd import grad, hessian, jacobian
 
 
 def f(x):
     # return 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
-    return 150*(x[0]*x[1])**2 + (0.5*x[0] + 2*x[1] - 2)**2
+    return 150 * (x[0] * x[1]) ** 2 + (0.5 * x[0] + 2 * x[1] - 2) ** 2
 
 
 df = grad(f)
@@ -87,6 +87,7 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
 
 print(f'BFGS result:{bfgs(np.array([-0.2, 1.2]))}\n')
 
+
 # Function plot for SR1
 contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
 plt.clabel(contours, inline=1, fontsize=10)
@@ -135,3 +136,74 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
 
 
 print(f'SR1 result:{sr1(np.array([-0.2, 1.2]))}')
+
+'''
+
+   SR1 with trust region
+   - using dogleg method for subproblem solving
+
+'''
+
+
+def dogleg(hk, gk, bk, trust_radius):
+    pB = -np.dot(hk, gk)
+    norm_pB = np.sqrt(np.dot(pB, pB))
+
+    if norm_pB <= trust_radius:
+        return pB
+
+    pU = - (np.dot(gk, gk) / np.dot(gk, np.dot(bk, gk))) * gk
+    dot_pU = np.dot(pU, pU)
+    norm_pU = np.sqrt(dot_pU)
+
+    if norm_pU >= trust_radius:
+        return trust_radius * pU / norm_pU
+
+    pB_pU = pB - pU
+    dot_pB_pU = np.dot(pB_pU, pB_pU)
+    dot_pU_pB_pU = np.dot(pU, pB_pU)
+    fact = dot_pU_pB_pU ** 2 - dot_pB_pU * (dot_pU - trust_radius ** 2)
+    tau = (-dot_pU_pB_pU + np.sqrt(fact)) / dot_pB_pU
+
+    return pU + tau * pB_pU
+
+
+def sr1_trust_region(xj, hes, jac, trust_radius=1.0, eta=1e-4, tol=1e-6):
+    k = 0
+    iters = 0
+    while True:
+        bk = hes(xj)
+        gk = jac(xj)
+        hk = np.linalg.inv(bk)
+
+        pk = dogleg(hk, gk, bk, trust_radius)
+        ared = f(xj) - f(xj + pk)
+        pred = -(np.dot(gk, pk) + 0.5 * np.dot(pk, np.dot(bk, pk)))
+        rhok = ared / pred
+
+        norm_pk = np.sqrt(np.dot(pk, pk))
+
+        if rhok > eta:
+            xj = xj + pk
+        else:
+            xj = xj
+
+        if rhok > 0.75:
+            if norm_pk <= 0.8 * trust_radius:
+                trust_radius = trust_radius
+            else:
+                trust_radius = 2 * trust_radius
+        elif 0.1 <= rhok <= 0.75:
+            trust_radius = trust_radius
+        else:
+            trust_radius = 0.5 * trust_radius
+
+        if np.linalg.norm(gk) < tol:
+            break
+        k = k + 1
+    iters += 1
+
+    return xj, f(xj), iters
+
+
+print(f'SR1 with trust-region result:{sr1_trust_region(np.array([-0.2, 1.2]), hessian(f), jacobian(f))}')
