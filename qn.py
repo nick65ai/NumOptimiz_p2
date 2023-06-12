@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from autograd import grad, hessian, jacobian
 from gradapprox import Approximation
+from scipy.optimize import minimize
+
+start = np.array([1.2, 1.2])
 
 
 def f(x):
@@ -10,6 +13,8 @@ def f(x):
 
 
 df = grad(f)
+
+minimizer = minimize(f, start, method='BFGS').x
 
 '''
 
@@ -70,7 +75,7 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
             x2 += [x[1], ]
             plt.plot(x1, x2, "rx-", ms=5.5)
             plt.show()
-            return x, f(x), iters
+            return x, f(x), iters, np.linalg.norm(df(xj)), abs(f(x) - minimizer)
         else:
             dj = x - xj
             gj = df(x) - gradient
@@ -91,8 +96,8 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
         iters += 1
 
 
-print(f'BFGS result:{bfgs(np.array([1.2, 1.2]))}\n')
-print(f'BFGS result with approximation:{bfgs(np.array([1.2, 1.2]), approx=True)}\n')
+print(f'BFGS result:{bfgs(start)}\n')
+print(f'BFGS result with approximation:{bfgs(start, approx=True)}\n')
 
 
 # Function plot for SR1
@@ -130,7 +135,7 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
             x2 += [x[1], ]
             plt.plot(x1, x2, "rx-", ms=5.5)
             plt.show()
-            return x, f(x), iters, np.linalg.norm(df(xj))
+            return x, f(x), iters, np.linalg.norm(df(xj)), abs(f(x) - minimizer)
         else:
             dj = x - xj
             gj = df(x) - gradient
@@ -147,8 +152,8 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
         iters += 1
 
 
-print(f'SR1 result:{sr1(np.array([1.2, 1.2]))}')
-print(f'SR1 result with approximation:{sr1(np.array([1.2, 1.2]), approx=True)}')
+print(f'SR1 result:{sr1(start)}')
+print(f'SR1 result with approximation:{sr1(start, approx=True)}')
 
 '''
 
@@ -216,7 +221,7 @@ def sr1_trust_region(xj, hes, jac, trust_radius=1.0, eta=1e-4, tol=1e-6):
         k = k + 1
         iters += 1
 
-    return xj, f(xj), iters, np.linalg.norm(df(xj))
+    return xj, f(xj), iters, np.linalg.norm(df(xj)), abs(f(xj) - minimizer)
 
 
-print(f'SR1 with trust-region result:{sr1_trust_region(np.array([1.2, 1.2]), hessian(f), jacobian(f))}')
+print(f'SR1 with trust-region result:{sr1_trust_region(start, hessian(f), jacobian(f))}')
