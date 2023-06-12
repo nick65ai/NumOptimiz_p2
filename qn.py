@@ -3,6 +3,7 @@ import numpy as np
 from autograd import grad, hessian, jacobian
 from gradapprox import Approximation
 
+
 def f(x):
     return 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
     # return 150 * (x[0] * x[1]) ** 2 + (0.5 * x[0] + 2 * x[1] - 2) ** 2
@@ -45,16 +46,19 @@ plt.ylabel("$x_2$ ->")
 '''
 
 
-def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
+def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
     iters = 0
 
     while True:
-        # gradient = df(xj)
-        grad_f = lambda xj: Approximation(f).estimate_grad(xj[0], xj[1])
-        gradient = grad_f(xj)
+        if approx is True:
+            grad_f = lambda xj: Approximation(f).estimate_grad(xj[0], xj[1])
+            gradient = grad_f(xj)
+        else:
+            gradient = df(xj)
+
         delta = -bf.dot(gradient)
 
         start_point = xj
@@ -88,6 +92,7 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
 
 
 print(f'BFGS result:{bfgs(np.array([1.2, 1.2]))}\n')
+print(f'BFGS result with approximation:{bfgs(np.array([1.2, 1.2]), approx=True)}\n')
 
 
 # Function plot for SR1
@@ -103,15 +108,18 @@ plt.ylabel("$x_2$ ->")
 '''
 
 
-def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
+def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
     iters = 0
     while True:
-        # gradient = df(xj)
-        grad_f = lambda xj: Approximation(f).estimate_grad(xj[0], xj[1])
-        gradient = grad_f(xj)
+        if approx is True:
+            grad_f = lambda xj: Approximation(f).estimate_grad(xj[0], xj[1])
+            gradient = grad_f(xj)
+        else:
+            gradient = df(xj)
+
         delta = -bf.dot(gradient)
         start_point = xj
         beta = backtracking_line_search(f, df, x0=start_point, pk=-gradient, alpha=alpha, rho=rho)
@@ -139,7 +147,8 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8):
         iters += 1
 
 
-# print(f'SR1 result:{sr1(np.array([1.2, 1.2]))}')
+print(f'SR1 result:{sr1(np.array([1.2, 1.2]))}')
+print(f'SR1 result with approximation:{sr1(np.array([1.2, 1.2]), approx=True)}')
 
 '''
 
