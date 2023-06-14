@@ -1,15 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from autograd import grad, hessian, jacobian
-from gradapprox import Approximation
+from grad_approx import Approximation
 from scipy.optimize import minimize
 
 start = np.array([1.2, 1.2])
 
 
 def f(x):
-    return 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
-    # return 150 * (x[0] * x[1]) ** 2 + (0.5 * x[0] + 2 * x[1] - 2) ** 2
+    function_1 = 100 * (x[1] - (x[0]) ** 2) ** 2 + (1 - x[0]) ** 2
+    function_2 = 150 * (x[0] * x[1]) ** 2 + (0.5 * x[0] + 2 * x[1] - 2) ** 2
+    return function_1
+    # return function_2
 
 
 df = grad(f)
@@ -31,19 +33,6 @@ def backtracking_line_search(f, df, x0, pk, alpha, rho):
     return step
 
 
-# Function plot
-x1 = np.linspace(-10, 10, 100)
-x2 = np.linspace(-10, 10, 100)
-z = np.zeros(([len(x1), len(x2)]))
-for i in range(0, len(x1)):
-    for j in range(0, len(x2)):
-        z[j, i] = f([x1[i], x2[j]])
-
-contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
-plt.clabel(contours, inline=1, fontsize=10)
-plt.xlabel("$x_1$ ->")
-plt.ylabel("$x_2$ ->")
-
 '''
 
    BFGS method
@@ -52,6 +41,19 @@ plt.ylabel("$x_2$ ->")
 
 
 def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
+    # Function plot
+    x1 = np.linspace(-10, 10, 100)
+    x2 = np.linspace(-10, 10, 100)
+    z = np.zeros(([len(x1), len(x2)]))
+    for i in range(0, len(x1)):
+        for j in range(0, len(x2)):
+            z[j, i] = f([x1[i], x2[j]])
+
+    contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
+    plt.clabel(contours, inline=1, fontsize=10)
+    plt.xlabel("$x_1$ ->")
+    plt.ylabel("$x_2$ ->")
+
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
@@ -99,13 +101,6 @@ def bfgs(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
 print(f'BFGS result:{bfgs(start)}\n')
 print(f'BFGS result with approximation:{bfgs(start, approx=True)}\n')
 
-
-# Function plot for SR1
-contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
-plt.clabel(contours, inline=1, fontsize=10)
-plt.xlabel("$x_1$ ->")
-plt.ylabel("$x_2$ ->")
-
 '''
 
    SR1 method
@@ -114,6 +109,19 @@ plt.ylabel("$x_2$ ->")
 
 
 def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
+    # Function plot
+    x1 = np.linspace(-10, 10, 100)
+    x2 = np.linspace(-10, 10, 100)
+    z = np.zeros(([len(x1), len(x2)]))
+    for i in range(0, len(x1)):
+        for j in range(0, len(x2)):
+            z[j, i] = f([x1[i], x2[j]])
+
+    contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
+    plt.clabel(contours, inline=1, fontsize=10)
+    plt.xlabel("$x_1$ ->")
+    plt.ylabel("$x_2$ ->")
+
     x1 = [xj[0]]
     x2 = [xj[1]]
     bf = np.eye(len(xj))
@@ -152,8 +160,8 @@ def sr1(xj, tolerance=1e-6, alpha=1e-4, rho=0.8, approx=False):
         iters += 1
 
 
-print(f'SR1 result:{sr1(start)}')
-print(f'SR1 result with approximation:{sr1(start, approx=True)}')
+print(f'SR1 result:{sr1(start)}\n')
+print(f'SR1 result with approximation:{sr1(start, approx=True)}\n')
 
 '''
 
@@ -186,12 +194,32 @@ def dogleg(hk, gk, bk, trust_radius):
     return pU + tau * pB_pU
 
 
-def sr1_trust_region(xj, hes, jac, trust_radius=1.0, eta=1e-4, tol=1e-6):
+def sr1_trust_region(xj, hes=hessian(f), jac=jacobian(f), trust_radius=1.0, eta=1e-4, tol=1e-6, approx=False):
+    # Function plot
+    x1 = np.linspace(-10, 10, 100)
+    x2 = np.linspace(-10, 10, 100)
+    z = np.zeros(([len(x1), len(x2)]))
+    for i in range(0, len(x1)):
+        for j in range(0, len(x2)):
+            z[j, i] = f([x1[i], x2[j]])
+
+    contours = plt.contour(x1, x2, z, 100, cmap=plt.cm.gnuplot)
+    plt.clabel(contours, inline=1, fontsize=10)
+    plt.xlabel("$x_1$ ->")
+    plt.ylabel("$x_2$ ->")
+
     k = 0
     iters = 0
     while True:
-        bk = hes(xj)
-        gk = jac(xj)
+        if approx is True:
+            bk_f = lambda xj: Approximation(f).estimate_hessian(xj[0], xj[1])
+            bk = bk_f(xj)
+            gk_f = lambda xj: Approximation(f).estimate_grad(xj[0], xj[1])
+            gk = gk_f(xj)
+        else:
+            bk = hes(xj)
+            gk = jac(xj)
+
         hk = np.linalg.inv(bk)
 
         pk = dogleg(hk, gk, bk, trust_radius)
@@ -217,11 +245,14 @@ def sr1_trust_region(xj, hes, jac, trust_radius=1.0, eta=1e-4, tol=1e-6):
             trust_radius = 0.5 * trust_radius
 
         if np.linalg.norm(gk) < tol:
-            break
+            x1 += [xj[0], ]
+            x2 += [xj[1], ]
+            plt.plot(x1, x2, "rx-", ms=5.5)
+            plt.show()
+            return xj, f(xj), iters, np.linalg.norm(df(xj)), abs(f(xj) - minimizer)
         k = k + 1
         iters += 1
 
-    return xj, f(xj), iters, np.linalg.norm(df(xj)), abs(f(xj) - minimizer)
 
-
-print(f'SR1 with trust-region result:{sr1_trust_region(start, hessian(f), jacobian(f))}')
+print(f'SR1 with trust-region result:{sr1_trust_region(start, hessian(f), jacobian(f))}\n')
+print(f'SR1 with trust-region result with approximation:{sr1_trust_region(start, approx=True)}')
